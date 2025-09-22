@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transliteration Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      background: linear-gradient(135deg, #e0f7fa, #e1bee7);
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #4a148c;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .sidebar h2 {
+      margin-top: 0;
+      font-size: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .sidebar.collapsed {
+      transform: translateX(-100%);
+    }
+    .menu-item {
+      background: none;
+      border: none;
+      color: white;
+      padding: 10px 0;
+      font-size: 16px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .menu-item:hover {
+      background: #7b1fa2;
+      border-radius: 6px;
+    }
+
+    /* Hamburger button */
+    .hamburger {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      font-size: 22px;
+      background: #7b1fa2;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      background: #fff;
+      border-radius: 16px 0 0 16px;
+      margin: 15px;
+      padding: 25px;
+      overflow-y: auto;
+      box-shadow: -4px 0 12px rgba(0,0,0,0.1);
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #4a148c;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.25s;
+    }
+    button.primary {
+      background: #7b1fa2;
+      color: white;
+    }
+    button.primary:hover {
+      background: #4a148c;
+    }
+    button.outline {
+      background: white;
+      border: 2px solid #7b1fa2;
+      color: #7b1fa2;
+    }
+    button.outline:hover {
+      background: #f3e5f5;
+    }
+    textarea, input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .preview img, video {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .result-box {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      min-height: 50px;
+      margin-top: 15px;
+      font-size: 15px;
+    }
+    .audio-controls {
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 999;
+      }
+      .main {
+        margin: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hamburger button -->
+  <button class="hamburger" id="menuBtn">☰</button>
+
+  <!-- Sidebar -->
+  <div class="sidebar collapsed" id="sidebar">
+    <h2>🌍 Menu</h2>
+    <button class="menu-item" data-page="dashboard">Dashboard</button>
+    <button class="menu-item" data-page="profile">Profile</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Dashboard Page -->
+    <div id="dashboardPage">
+      <h1>Transliteration App</h1>
+      <div class="section">
+        <div class="btn-group">
+          <button id="textBtn" class="primary">Text</button>
+          <button id="imageBtn" class="outline">Image</button>
+          <button id="voiceBtn" class="outline">Voice</button>
+          <button id="cameraBtn" class="outline">Camera</button>
+        </div>
+        <div id="inputArea">
+          <textarea id="textInput" placeholder="Enter text here..."></textarea>
+        </div>
+      </div>
+
+      <!-- Source / Target Language -->
+      <div class="section">
+        <label><b>Source Language:</b></label>
+        <select id="sourceLang">
+          <option value="hi">Hindi</option>
+          <option value="ta">Tamil</option>
+          <option value="te">Telugu</option>
+          <option value="bn">Bengali</option>
+          <option value="ml">Malayalam</option>
+        </select>
+
+        <label><b>Target Script:</b></label>
+        <select id="targetLang">
+          <option value="en">English (Latin)</option>
+          <option value="hi">Devanagari (Hindi)</option>
+          <option value="ta">Tamil Script</option>
+          <option value="ml">Malayalam Script</option>
+        </select>
+      </div>
+
+      <div class="section">
+        <button class="primary" id="transliterateBtn">🔄 Transliterate</button>
+      </div>
+
+      <div class="section">
+        <label><b>Output:HANSHAL (good boyyyyy)</b></label>
+        <div class="result-box" id="resultBox">⚡ Your transliterated text will appear here...</div>
+      </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profilePage" style="display:none;">
+      <h1>Profile</h1>
+      <p>Profile information goes here...</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.1/dist/tesseract.min.js"></script>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const menuBtn = document.getElementById("menuBtn");
+
+    // Hamburger menu toggle
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      menuBtn.textContent = menuBtn.textContent === "☰" ? "✖" : "☰";
+    });
+
+    // Sidebar menu navigation
+    const menuItems = document.querySelectorAll(".menu-item");
+    const dashboardPage = document.getElementById("dashboardPage");
+    const profilePage = document.getElementById("profilePage");
+
+    menuItems.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const page = btn.dataset.page;
+        if (page === "dashboard") {
+          dashboardPage.style.display = "block";
+          profilePage.style.display = "none";
+        } else if (page === "profile") {
+          dashboardPage.style.display = "none";
+          profilePage.style.display = "block";
+        }
+      });
+    });
+
+    // Transliteration App JS
+    const textBtn = document.getElementById("textBtn");
+    const imageBtn = document.getElementById("imageBtn");
+    const voiceBtn = document.getElementById("voiceBtn");
+    const cameraBtn = document.getElementById("cameraBtn");
+    const inputArea = document.getElementById("inputArea");
+    const transliterateBtn = document.getElementById("transliterateBtn");
+    const resultBox = document.getElementById("resultBox");
+    let inputType = "text";
+    let mediaRecorder, audioChunks = [];
+
+    function resetButtons() {
+      textBtn.className = "outline";
+      imageBtn.className = "outline";
+      voiceBtn.className = "outline";
+      cameraBtn.className = "outline";
+    }
+
+    // Text Mode
+    textBtn.addEventListener("click", () => {
+      resetButtons(); textBtn.className = "primary"; inputType = "text";
+      inputArea.innerHTML = '<textarea id="textInput" placeholder="Enter text here..."></textarea>';
+    });
+
+    // Image Mode
+    imageBtn.addEventListener("click", () => {
+      resetButtons(); imageBtn.className = "primary"; inputType = "image";
+      inputArea.innerHTML = `
+        <input type="file" id="imageInput" accept="image/*" />
+        <div class="preview" id="imgPreview"></div>
+      `;
+      document.getElementById("imageInput").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = ev => document.getElementById("imgPreview").innerHTML = '<img src="'+ev.target.result+'" />';
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+
+    // Voice Mode
+    voiceBtn.addEventListener("click", () => {
+      resetButtons(); voiceBtn.className = "primary"; inputType = "voice";
+      inputArea.innerHTML = `
+        <button id="recordBtn" class="outline">🎤 Start Recording</button>
+        <div class="audio-controls" id="audioControls"></div>
+      `;
+      const recordBtn = document.getElementById("recordBtn");
+      recordBtn.addEventListener("click", async () => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            document.getElementById("audioControls").innerHTML = '<audio controls src="'+audioUrl+'"></audio>';
+          };
+          mediaRecorder.start();
+          recordBtn.textContent = "⏹ Stop Recording";
+        } else {
+          mediaRecorder.stop();
+          recordBtn.textContent = "🎤 Start Recording";
+        }
+      });
+    });
+// Advanced Camera OCR with Tesseract Worker
+cameraBtn.addEventListener("click", async () => {
+  resetButtons();
+  cameraBtn.className = "primary";
+  inputType = "camera";
+
+  inputArea.innerHTML = `
+    <video id="cameraVideo" autoplay playsinline style="width:100%;border-radius:8px;"></video>
+    <div style="margin-top:10px; display:flex; gap:10px;">
+      <button id="captureBtn" class="outline">📸 Capture</button>
+      <button id="retryBtn" class="outline">🔄 Retry</button>
+    </div>
+    <textarea id="textInput" placeholder="Captured text will appear here..." style="margin-top:10px;"></textarea>
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+  `;
+
+  const video = document.getElementById("cameraVideo");
+  const captureBtn = document.getElementById("captureBtn");
+  const retryBtn = document.getElementById("retryBtn");
+  const canvas = document.getElementById("cameraCanvas");
+  const textInput = document.getElementById("textInput");
+
+  // Start high-res camera
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1920, height: 1080 } });
+    video.srcObject = stream;
+    await new Promise(resolve => video.onloadedmetadata = resolve);
+  } catch (err) {
+    resultBox.textContent = "⚠️ Camera not accessible: " + err.message;
+    return;
+  }
+
+  // Preprocess image
+  function preprocess(ctx, width, height) {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      let gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      gray = gray < 128 ? gray * 0.8 : gray * 1.2;
+      data[i] = data[i + 1] = data[i + 2] = Math.min(255, Math.max(0, gray));
+    }
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  // Initialize Tesseract worker
+  const worker = Tesseract.createWorker({
+    logger: m => {
+      if (m.status === 'recognizing text') {
+        resultBox.textContent = `🔎 OCR Progress: ${Math.round(m.progress * 100)}%`;
+      } else {
+        resultBox.textContent = m.status;
+      }
+    }
+  });
+
+  await worker.load();
+  const sourceLang = document.getElementById("sourceLang").value;
+  await worker.loadLanguage(sourceLang);
+  await worker.initialize(sourceLang);
+
+  async function runOCR() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    preprocess(ctx, canvas.width, canvas.height);
+
+    canvas.toBlob(async blob => {
+      if (!blob) return resultBox.textContent = "⚠️ Failed to capture image.";
+      resultBox.textContent = "🔎 Running OCR...";
+      try {
+        const { data: { text } } = await worker.recognize(blob);
+        textInput.value = text.trim();
+        resultBox.textContent = "✨ OCR complete! You can now click Transliterate.";
+      } catch (err) {
+        resultBox.textContent = "❌ OCR failed: " + err.message;
+      }
+    }, 'image/png');
+  }
+
+  captureBtn.addEventListener("click", runOCR);
+  retryBtn.addEventListener("click", () => {
+    textInput.value = "";
+    resultBox.textContent = "🔄 Ready for new capture. Adjust the text and click Capture.";
+  });
+
+  // Clean up worker when switching input types
+  const cleanupWorker = () => {
+    worker.terminate();
+  };
+});
+
+
+    // Transliteration Action
+    transliterateBtn.addEventListener("click", () => {
+      const sourceLang = document.getElementById("sourceLang").value;
+      const targetLang = document.getElementById("targetLang").value;
+
+      if (inputType === "text") {
+        const textInput = document.getElementById("textInput").value;
+        resultBox.textContent = `✨ Text from ${sourceLang} → ${targetLang}: ${textInput}`;
+      } 
+      else if (inputType === "image") {
+        const imageInput = document.getElementById("imageInput");
+        if (!imageInput || imageInput.files.length === 0) {
+          resultBox.textContent = "⚠️ Please upload an image first!";
+          return;
+        }
+        const file = imageInput.files[0];
+        resultBox.textContent = "🔎 Running OCR... Please wait.";
+        Tesseract.recognize(file, 'eng')
+          .then(({ data: { text } }) => {
+            resultBox.textContent = `✨ OCR Result (${sourceLang} → ${targetLang}):\n${text}`;
+          })
+          .catch(err => resultBox.textContent = "❌ OCR failed: " + err.message);
+      } 
+      else if (inputType === "voice") {
+        resultBox.textContent = `🎤 Voice input from ${sourceLang} → ${targetLang} (Speech-to-text not implemented yet)`;
+      }
+    });
+  </script>
+</body>
+</html>
